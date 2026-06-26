@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>守时性能计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            flex: 1;
+        }
+
+        .help-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .help-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            cursor: pointer;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .result-unit {
+            color: #999;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        .warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+            color: #e65100;
+        }
+
+        .success {
+            background: #e8f5e9;
+            border-left-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 22px;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: auto;
+            height: auto;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .formula-section {
+            margin-bottom: 25px;
+        }
+
+        .formula-section h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .formula-box {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 10px;
+            overflow-x: auto;
+        }
+
+        .formula-explain {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .example-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .example-table th,
+        .example-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .example-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .example-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .note-box {
+            background: #fff9e6;
+            border-left: 4px solid #fbc02d;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #f57f17;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: 500;
+        }
+
+        .small-hint {
+            color: #999;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>⏱️ 守时性能计算器</h1>
+                <p class="subtitle">基于老化率计算时间偏差</p>
+            </div>
+            <button class="help-btn" onclick="openFormulaModal()">?</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('calculator')">计算器</button>
+            <button class="tab-btn" onclick="switchTab('compare')">精度对比</button>
+            <button class="tab-btn" onclick="switchTab('guide')">使用指南</button>
+        </div>
+
+        <!-- 计算器标签页 -->
+        <div id="calculator" class="tab-content active">
+            <form id="form">
+                <div class="form-group">
+                    <label>选择老化率类型</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="monthlyRate" name="rateType" value="monthly" checked>
+                            <label for="monthlyRate" style="margin: 0;">月老化率</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="yearlyRate" name="rateType" value="yearly">
+                            <label for="yearlyRate" style="margin: 0;">年老化率</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="agingRate">老化率 <span id="rateUnitLabel">(E-10/月)</span></label>
+                    <input type="number" id="agingRate" min="0" step="0.1" placeholder="例：500" required>
+                    <small class="small-hint" id="rateHint">单位：E-10/月，即 10⁻¹⁰ 每月 | 范例：500 表示 500×10⁻¹⁰/月</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">部署时长 (天)</label>
+                    <input type="number" id="duration" min="0" step="0.1" placeholder="例：365" required>
+                    <small class="small-hint">单位：天 | 范例：365 表示 365 天部署</small>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="calculate-btn" onclick="calculate()">📊 计算</button>
+                    <button type="button" class="reset-btn" onclick="resetForm()">🔄 重置</button>
+                </div>
+            </form>
+
+            <div id="results" class="results">
+                <div class="result-item">
+                    <div class="result-label">累积时间偏差</div>
+                    <div class="result-value">
+                        <span id="timeDrift">--</span>
+                        <span class="result-unit" id="timeDriftUnit">秒</span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">守时性能</div>
+                    <div class="result-value">
+                        <span id="timeKeepingPerf">--</span>
+                        <span class="result-unit">%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="perfProgressBar"></div>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">总运行时间</div>
+                    <div class="result-value">
+                        <span id="totalTime">--</span>
+                        <span class="result-unit" id="totalTimeUnit">秒</span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">相对偏差</div>
+                    <div class="result-value">
+                        <span id="relativeError">--</span>
+                        <span class="result-unit">PPM</span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-label">等级评定</div>
+                    <div class="result-value" id="gradeLevel">--</div>
+                </div>
+
+                <div id="infoBox" class="info-box"></div>
+            </div>
+        </div>
+
+        <!-- 精度对比标签页 -->
+        <div id="compare" class="tab-content">
+            <h3 style="color: #333; margin-bottom: 20px;">⚖️ 两个时钟精度对比</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <!-- 时钟1 -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <h4 style="color: #667eea; margin-bottom: 15px;">⏰ 时钟 1</h4>
+
+                    <div class="form-group">
+                        <label>老化率类型</label>
+                        <div class="radio-group" style="flex-direction: column; gap: 10px;">
+                            <div class="radio-item">
+                                <input type="radio" id="clock1Monthly" name="clock1RateType" value="monthly" checked>
+                                <label for="clock1Monthly" style="margin: 0;">月老化率</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="clock1Yearly" name="clock1RateType" value="yearly">
+                                <label for="clock1Yearly" style="margin: 0;">年老化率</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clock1AgingRate">老化率 <span id="clock1RateUnit">(E-10/月)</span></label>
+                        <input type="number" id="clock1AgingRate" min="0" step="0.1" placeholder="例：500" required>
+                    </div>
+                </div>
+
+                <!-- 时钟2 -->
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #764ba2;">
+                    <h4 style="color: #764ba2; margin-bottom: 15px;">⏰ 时钟 2</h4>
+
+                    <div class="form-group">
+                        <label>老化率类型</label>
+                        <div class="radio-group" style="flex-direction: column; gap: 10px;">
+                            <div class="radio-item">
+                                <input type="radio" id="clock2Monthly" name="clock2RateType" value="monthly" checked>
+                                <label for="clock2Monthly" style="margin: 0;">月老化率</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="clock2Yearly" name="clock2RateType" value="yearly">
+                                <label for="clock2Yearly" style="margin: 0;">年老化率</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clock2AgingRate">老化率 <span id="clock2RateUnit">(E-10/月)</span></label>
+                        <input type="number" id="clock2AgingRate" min="0" step="0.1" placeholder="例：100" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="compareDuration">部署时长 (天)</label>
+                <input type="number" id="compareDuration" min="0" step="0.1" placeholder="例：365" required>
+                <small class="small-hint">两个时钟使用相同的部署时长</small>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="calculate-btn" onclick="calculateCompare()" style="flex: 1;">📊 对比计算</button>
+                <button type="button" class="reset-btn" onclick="resetCompare()" style="flex: 1;">🔄 重置</button>
+            </div>
+
+            <div id="compareResults" class="results">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <!-- 时钟1结果 -->
+                    <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <h4 style="color: #667eea; margin-bottom: 12px; font-size: 14px;">⏰ 时钟 1 结果</h4>
+                        <div style="font-size: 13px;">
+                            <div style="margin-bottom: 10px;">
+                                <div style="color: #999; font-size: 12px;">累积时间偏差</div>
+                                <div style="color: #333; font-weight: 600; font-size: 16px;" id="clock1Drift">--</div>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <div style="color: #999; font-size: 12px;">守时性能</div>
+                                <div style="color: #333; font-weight: 600; font-size: 16px;" id="clock1Perf">--<span style="font-size: 12px; color: #999; margin-left: 4px;">%</span></div>
+                                <div class="progress-bar" style="margin-top: 6px;">
+                                    <div class="progress-fill" id="clock1PerfBar" style="background: #667eea;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="color: #999; font-size: 12px;">相对偏差</div>
+                                <div style="color: #333; font-weight: 600; font-size: 16px;" id="clock1PPM">--<span style="font-size: 12px; color: #999; margin-left: 4px;">PPM</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 时钟2结果 -->
+                    <div style="background: rgba(118, 75, 162, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid #764ba2;">
+                        <h4 style="color: #764ba2; margin-bottom: 12px; font-size: 14px;">⏰ 时钟 2 结果</h4>
+                        <div style="font-size: 13px;">
+                            <div style="margin-bottom: 10px;">
+                                <div style="color: #999; font-size: 12px;">累积时间偏差</div>
+                                <div style="color: #333; font-weight: 600; font-size: 16px;" id="clock2Drift">--</div>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <div style="color: #999; font-size: 12px;">守时性能</div>
+                                <div style="color: #333; font-weight: 600; font-size: 16px;" id="clock2Perf">--<span style="font-size: 12px; color: #999; margin-left: 4px;">%</span></div>
+                                <div class="progress-bar" style="margin-top: 6px;">
+                                    <div class="progress-fill" id="clock2PerfBar" style="background: #764ba2;"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="color: #999; font-size: 12px;">相对偏差</div>
+                                <div style="color: #333; font-weight: 600; font-size: 16px;" id="clock2PPM">--<span style="font-size: 12px; color: #999; margin-left: 4px;">PPM</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 对比分析 -->
+                <div style="background: #fff9e6; border-left: 4px solid #fbc02d; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="color: #f57f17; margin-bottom: 12px; font-size: 14px;">📊 精度对比分析</h4>
+                    <div id="compareAnalysis" style="font-size: 13px; color: #f57f17; line-height: 1.6;"></div>
+                </div>
+
+                <!-- 排名 -->
+                <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #2e7d32; margin-bottom: 12px; font-size: 14px;">🏆 精度排名</h4>
+                    <div id="compareRanking" style="font-size: 13px; color: #2e7d32; line-height: 1.8;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使用指南标签页 -->
+        <div id="guide" class="tab-content">
+            <h3 style="color: #333; margin-bottom: 15px;">📖 使用指南</h3>
+
+            <div style="line-height: 1.8; color: #666; font-size: 14px;">
+                <h4 style="color: #667eea; margin-top: 15px; margin-bottom: 10px;">🎯 计算公式</h4>
+                <div class="formula-box">
+                    Δt = 1/2 × A × T² × S
+                </div>
+                <p style="margin-bottom: 10px;">
+                    <strong>参数说明：</strong><br>
+                    • Δt = 累积时间偏差 (秒)<br>
+                    • A = 老化率 (E-10/月)<br>
+                    • T = 部署时长 (月)<br>
+                    • S = 每月秒数 (2,592,000)
+                </p>
+
+                <h4 style="color: #667eea; margin-top: 15px; margin-bottom: 10px;">💡 常见老化率参考</h4>
+                <table class="example-table">
+                    <tr>
+                        <th>设备类型</th>
+                        <th>老化率范围</th>
+                        <th>说明</th>
+                    </tr>
+                    <tr>
+                        <td>原子钟</td>
+                        <td>0.1-1</td>
+                        <td>超高精度</td>
+                    </tr>
+                    <tr>
+                        <td>晶体振荡器</td>
+                        <td>10-50</td>
+                        <td>精密计时</td>
+                    </tr>
+                    <tr>
+                        <td>石英表</td>
+                        <td>100-500</td>
+                        <td>消费级计时</td>
+                    </tr>
+                    <tr>
+                        <td>机械表</td>
+                        <td>500-2000</td>
+                        <td>低端计时</td>
+                    </tr>
+                    <tr>
+                        <td>普通设备</td>
+                        <td>1000+</td>
+                        <td>非计时应用</td>
+                    </tr>
+                </table>
+
+                <h4 style="color: #667eea; margin-top: 15px; margin-bottom: 10px;">⚙️ 使用步骤</h4>
+                <ol style="margin-left: 20px; margin-top: 8px;">
+                    <li>选择老化率类型（年率/月率）</li>
+                    <li>输入老化率数值（单位：E-10）</li>
+                    <li>输入部署时长（单位：天）</li>
+                    <li>点击 <span class="highlight">计算</span> 按钮</li>
+                    <li>查看累积时间偏差和守时性能等结果</li>
+                </ol>
+
+                <h4 style="color: #667eea; margin-top: 15px; margin-bottom: 10px;">📝 计算示例</h4>
+                <p style="margin: 10px 0;">
+                    <strong>场景：</strong> 晶体振荡器月老化率 = 100 E-10/月，部署 360 天
+                </p>
+                <div class="formula-box">
+                    步骤 1: 将天数转换为月数
+                    T = 360 / 30 = 12 个月
+
+                    步骤 2: 计算累积时间偏差
+                    Δt = 1/2 × 100 × 12² × 2,592,000
+                       = 1/2 × 100 × 144 × 2,592,000
+                       = 18,662,400,000 × 10⁻¹⁰
+                       = 186.624 秒 ≈ 3 分钟
+                </div>
+                <p style="margin-top: 10px;">
+                    守时性能 = (12×30×24×3600 - 186.624) / (12×30×24×3600) × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (31,104,000 - 186.624) / 31,104,000 × 100%<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≈ 99.9994%
+                </p>
+
+                <div class="note-box">
+                    <strong>💬 提示：</strong><br>
+                    • 老化率通常从产品数据表或厂商文档获取<br>
+                    • PPM (Parts Per Million) = 相对偏差 × 10⁶<br>
+                    • 守时性能越接近 100%，设备精度越高<br>
+                    • 可以根据需求计算不同部署时长的性能指标
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 公式说明模态框 -->
+    <div id="formulaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📐 守时性能计算公式</h2>
+                <button class="close-btn" onclick="closeFormulaModal()">×</button>
+            </div>
+
+            <div class="formula-section">
+                <h3>📌 核心公式</h3>
+                <div class="formula-box">
+                    Δt = 1/2 × A × T² × S
+                </div>
+                <div class="formula-explain">
+                    <strong>其中：</strong><br>
+                    • Δt = 累积时间偏差 (单位：秒)<br>
+                    • A = 老化率 (单位：E-10/月，若为年率需除以12)<br>
+                    • T = 部署时长 (单位：月，由输入的天数转换：T = 天数 / 30)<br>
+                    • S = 每月秒数 = 2,592,000 (固定值)
+                </div>
+            </div>
+
+            <div class="formula-section">
+                <h3>📊 守时性能计算</h3>
+                <div class="formula-box">
+                    守时性能(%) = (总运行秒数 - Δt) / 总运行秒数 × 100%
+                </div>
+                <div class="formula-explain">
+                    <strong>其中：</strong><br>
+                    • 总运行秒数 = T × S = T × 2,592,000<br>
+                    • 该值越接近 100%，表示系统的计时精度越高
+                </div>
+            </div>
+
+            <div class="formula-section">
+                <h3>📈 相对偏差 (PPM)</h3>
+                <div class="formula-box">
+                    相对偏差(PPM) = (Δt / 总运行秒数) × 10⁶
+                </div>
+                <div class="formula-explain">
+                    <strong>含义：</strong><br>
+                    • PPM = Parts Per Million<br>
+                    • 表示百万分之几的误差<br>
+                    • 范例：PPM = 6，表示百万分之六的误差<br>
+                    • 相对偏差(%) = (Δt / 总运行秒数) × 100
+                </div>
+            </div>
+
+            <div class="formula-section">
+                <h3>🔧 老化率单位说明</h3>
+                <div class="formula-explain">
+                    <strong>E-10 表示 10⁻¹⁰：</strong><br>
+                    • 1 E-10/月 = 10⁻¹⁰ /月<br>
+                    • 输入 100 表示 100 × 10⁻¹⁰ /月 = 10⁻⁸ /月<br>
+                    • 这是表示频率或时间标准老化率的常用单位<br><br>
+                    <strong>换算关系：</strong><br>
+                    • 100 E-10/月 ≈ 10 ppm/年<br>
+                    • 1 E-10/月 ≈ 0.1 ppm/年
+                </div>
+            </div>
+
+            <div class="formula-section">
+                <h3>📋 完整计算示例</h3>
+                <div class="formula-explain">
+                    <strong>条件：</strong><br>
+                    • 老化率类型：月老化率<br>
+                    • 老化率 A = 500 E-10/月<br>
+                    • 部署时长 = 360 天<br>
+                    • 每月秒数 S = 2,592,000
+                </div>
+                <div class="formula-box">
+                    步骤 1: 将天数转换为月数
+                    T = 360 / 30 = 12 个月
+
+                    步骤 2: 由于已选月老化率，月率 = 500 E-10/月
+
+                    步骤 3: 计算累积时间偏差
+                    Δt = 1/2 × 500 × 12² × 2,592,000
+                       = 1/2 × 500 × 144 × 2,592,000
+                       = 93,312,000,000 × 10⁻¹⁰
+                       = 933.12 秒
+
+                    步骤 4: 计算总运行时间
+                    总秒数 = 12 × 2,592,000 = 31,104,000 秒
+
+                    步骤 5: 计算守时性能
+                    守时性能 = (31,104,000 - 933.12) / 31,104,000 × 100%
+                           = 0.999970 × 100%
+                           ≈ 99.997%
+
+                    步骤 6: 计算相对偏差
+                    相对偏差 = 933.12 / 31,104,000 × 10⁶
+                           ≈ 30 PPM
+                </div>
+            </div>
+
+            <div class="note-box">
+                <strong>⚠️ 重要说明：</strong><br>
+                • 此计算基于线性老化模型<br>
+                • 实际情况可能受温度、电压等环境因素影响<br>
+                • 老化率 A 应从官方数据表获取<br>
+                • 结果适用于预测和评估系统性能
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const S = 2592000; // 每月秒数
+
+        // 监听单个计算器老化率类型变化
+        document.querySelectorAll('input[name="rateType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const rateTypeLabel = document.getElementById('rateUnitLabel');
+                const rateHint = document.getElementById('rateHint');
+
+                if (this.value === 'monthly') {
+                    rateTypeLabel.textContent = '(E-10/月)';
+                    rateHint.textContent = '单位：E-10/月，即 10⁻¹⁰ 每月 | 范例：500 表示 500×10⁻¹⁰/月';
+                } else {
+                    rateTypeLabel.textContent = '(E-10/年)';
+                    rateHint.textContent = '单位：E-10/年，即 10⁻¹⁰ 每年 | 范例：6000 表示 6000×10⁻¹⁰/年';
+                }
+                // 清空之前的计算结果
+                document.getElementById('results').classList.remove('show');
+            });
+        });
+
+        // 监听对比页面时钟1老化率类型变化
+        document.querySelectorAll('input[name="clock1RateType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const rateUnit = document.getElementById('clock1RateUnit');
+                if (this.value === 'monthly') {
+                    rateUnit.textContent = '(E-10/月)';
+                } else {
+                    rateUnit.textContent = '(E-10/年)';
+                }
+                document.getElementById('compareResults').classList.remove('show');
+            });
+        });
+
+        // 监听对比页面时钟2老化率类型变化
+        document.querySelectorAll('input[name="clock2RateType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const rateUnit = document.getElementById('clock2RateUnit');
+                if (this.value === 'monthly') {
+                    rateUnit.textContent = '(E-10/月)';
+                } else {
+                    rateUnit.textContent = '(E-10/年)';
+                }
+                document.getElementById('compareResults').classList.remove('show');
+            });
+        });
+
+        function calculate() {
+            const rateType = document.querySelector('input[name="rateType"]:checked').value;
+            const agingRate = parseFloat(document.getElementById('agingRate').value);
+            const durationDays = parseFloat(document.getElementById('duration').value);
+
+            // 验证输入
+            if (!agingRate || agingRate < 0) {
+                alert('请输入有效的老化率（E-10）');
+                return;
+            }
+
+            if (!durationDays || durationDays < 0) {
+                alert('请输入有效的部署时长（天）');
+                return;
+            }
+
+            // 将天数转换为月数（用于计算）
+            // 1 月 = 30 天
+            const durationMonths = durationDays / 30;
+
+            // 将年率转换为月率（用于计算）
+            let monthlyAgingRate = agingRate;
+            if (rateType === 'yearly') {
+                // 年率 → 月率：monthly = yearly / 12
+                monthlyAgingRate = agingRate / 12;
+            }
+
+            // 计算累积时间偏差
+            // Δt = 1/2 × A × T² × S × 10^-10
+            const timeDrift = 0.5 * monthlyAgingRate * Math.pow(durationMonths, 2) * S * 1e-10;
+
+            // 计算总运行时间（秒）
+            const totalSeconds = durationMonths * S;
+
+            // 计算守时性能
+            const timeKeepingPerf = (1 - timeDrift / totalSeconds) * 100;
+
+            // 计算相对偏差 (PPM)
+            const relativeErrorPPM = (timeDrift / totalSeconds) * 1e6;
+            const relativeErrorPercent = (timeDrift / totalSeconds) * 100;
+
+            // 判断等级
+            let gradeLevel, gradeColor;
+            if (timeKeepingPerf >= 99.99) {
+                gradeLevel = '✅ 超高精度 (4个9)';
+                gradeColor = '#4caf50';
+            } else if (timeKeepingPerf >= 99.9) {
+                gradeLevel = '✅ 高精度 (3个9)';
+                gradeColor = '#8bc34a';
+            } else if (timeKeepingPerf >= 99) {
+                gradeLevel = '⚠️ 中等精度 (2个9)';
+                gradeColor = '#ff9800';
+            } else if (timeKeepingPerf >= 95) {
+                gradeLevel = '⚠️ 基本精度';
+                gradeColor = '#ff9800';
+            } else {
+                gradeLevel = '❌ 低精度';
+                gradeColor = '#f44336';
+            }
+
+            // 格式化时间偏差显示
+            let timeDriftValue, timeDriftUnit;
+            if (timeDrift < 1) {
+                timeDriftValue = (timeDrift * 1000).toFixed(3);
+                timeDriftUnit = '毫秒';
+            } else if (timeDrift < 60) {
+                timeDriftValue = timeDrift.toFixed(2);
+                timeDriftUnit = '秒';
+            } else if (timeDrift < 3600) {
+                timeDriftValue = (timeDrift / 60).toFixed(2);
+                timeDriftUnit = '分钟';
+            } else {
+                timeDriftValue = (timeDrift / 3600).toFixed(2);
+                timeDriftUnit = '小时';
+            }
+
+            // 格式化总运行时间显示
+            let totalTimeValue, totalTimeUnit;
+            if (totalSeconds < 60) {
+                totalTimeValue = totalSeconds.toFixed(0);
+                totalTimeUnit = '秒';
+            } else if (totalSeconds < 3600) {
+                totalTimeValue = (totalSeconds / 60).toFixed(0);
+                totalTimeUnit = '分钟';
+            } else if (totalSeconds < 86400) {
+                totalTimeValue = (totalSeconds / 3600).toFixed(2);
+                totalTimeUnit = '小时';
+            } else {
+                totalTimeValue = (totalSeconds / 86400).toFixed(2);
+                totalTimeUnit = '天';
+            }
+
+            // 显示结果
+            document.getElementById('timeDrift').textContent = timeDriftValue;
+            document.getElementById('timeDriftUnit').textContent = timeDriftUnit;
+
+            document.getElementById('timeKeepingPerf').textContent = timeKeepingPerf.toFixed(6);
+            document.getElementById('perfProgressBar').style.width = Math.min(timeKeepingPerf, 100) + '%';
+
+            document.getElementById('totalTime').textContent = totalTimeValue;
+            document.getElementById('totalTimeUnit').textContent = totalTimeUnit;
+
+            document.getElementById('relativeError').textContent = relativeErrorPPM.toFixed(4);
+
+            document.getElementById('gradeLevel').textContent = gradeLevel;
+            document.getElementById('gradeLevel').style.color = gradeColor;
+
+            // 显示信息框
+            const infoBox = document.getElementById('infoBox');
+            let warningClass = 'success';
+            const rateTypeText = rateType === 'yearly' ? '年老化率' : '月老化率';
+            let message = `📊 计算结果分析：<br>`;
+            message += `• ${rateTypeText}：${agingRate} E-10 | 部署时长：${durationDays} 天 (${durationMonths.toFixed(2)} 月)<br>`;
+            message += `• 累积时间偏差：${timeDriftValue} ${timeDriftUnit}<br>`;
+            message += `• 守时性能：${timeKeepingPerf.toFixed(4)}%<br>`;
+            message += `• 相对偏差：${relativeErrorPPM.toFixed(2)} PPM (百万分之 ${relativeErrorPPM.toFixed(2)})`;
+
+            if (timeKeepingPerf < 95) {
+                warningClass = 'warning';
+                message += `<br>⚠️ 精度较低，可能不适合精密计时应用`;
+            } else if (timeKeepingPerf < 99) {
+                warningClass = 'warning';
+                message += `<br>💡 精度处于中等水平`;
+            } else {
+                message += `<br>✅ 精度良好，适合大多数应用`;
+            }
+
+            infoBox.innerHTML = message;
+            infoBox.className = `info-box ${warningClass}`;
+
+            document.getElementById('results').classList.add('show');
+        }
+
+        function resetForm() {
+            document.getElementById('form').reset();
+            document.getElementById('results').classList.remove('show');
+        }
+
+        // 对比计算函数
+        function calculateCompare() {
+            const clock1RateType = document.querySelector('input[name="clock1RateType"]:checked').value;
+            const clock1AgingRate = parseFloat(document.getElementById('clock1AgingRate').value);
+            const clock2RateType = document.querySelector('input[name="clock2RateType"]:checked').value;
+            const clock2AgingRate = parseFloat(document.getElementById('clock2AgingRate').value);
+            const durationDays = parseFloat(document.getElementById('compareDuration').value);
+
+            // 验证输入
+            if (!clock1AgingRate || clock1AgingRate < 0) {
+                alert('请输入有效的时钟1老化率（E-10）');
+                return;
+            }
+
+            if (!clock2AgingRate || clock2AgingRate < 0) {
+                alert('请输入有效的时钟2老化率（E-10）');
+                return;
+            }
+
+            if (!durationDays || durationDays < 0) {
+                alert('请输入有效的部署时长（天）');
+                return;
+            }
+
+            // 计算两个时钟的指标
+            const clock1Result = calculateClockMetrics(clock1RateType, clock1AgingRate, durationDays);
+            const clock2Result = calculateClockMetrics(clock2RateType, clock2AgingRate, durationDays);
+
+            // 显示时钟1结果
+            document.getElementById('clock1Drift').textContent = clock1Result.driftValue + ' ' + clock1Result.driftUnit;
+            document.getElementById('clock1Perf').textContent = clock1Result.perf.toFixed(6);
+            document.getElementById('clock1PerfBar').style.width = Math.min(clock1Result.perf, 100) + '%';
+            document.getElementById('clock1PPM').textContent = clock1Result.ppm.toFixed(2);
+
+            // 显示时钟2结果
+            document.getElementById('clock2Drift').textContent = clock2Result.driftValue + ' ' + clock2Result.driftUnit;
+            document.getElementById('clock2Perf').textContent = clock2Result.perf.toFixed(6);
+            document.getElementById('clock2PerfBar').style.width = Math.min(clock2Result.perf, 100) + '%';
+            document.getElementById('clock2PPM').textContent = clock2Result.ppm.toFixed(2);
+
+            // 生成对比分析
+            const perfDiff = Math.abs(clock1Result.perf - clock2Result.perf);
+            const ppmDiff = Math.abs(clock1Result.ppm - clock2Result.ppm);
+            const timeDriftDiff = Math.abs(clock1Result.timeDrift - clock2Result.timeDrift);
+
+            const betterClock = clock1Result.perf > clock2Result.perf ? '时钟 1' : '时钟 2';
+            const worseClock = clock1Result.perf > clock2Result.perf ? '时钟 2' : '时钟 1';
+            const higherPerf = Math.max(clock1Result.perf, clock2Result.perf);
+            const lowerPerf = Math.min(clock1Result.perf, clock2Result.perf);
+            const perfRelativeImprovement = ((higherPerf - lowerPerf) / lowerPerf) * 100;
+
+            const lowerPPM = Math.min(clock1Result.ppm, clock2Result.ppm);
+            const higherPPM = Math.max(clock1Result.ppm, clock2Result.ppm);
+            const ppmRelativeImprovement = ((higherPPM - lowerPPM) / higherPPM) * 100;
+
+            // 格式化时间偏差差值
+            let timeDriftDiffValue, timeDriftDiffUnit;
+            if (timeDriftDiff < 1) {
+                timeDriftDiffValue = (timeDriftDiff * 1000).toFixed(3);
+                timeDriftDiffUnit = '毫秒';
+            } else if (timeDriftDiff < 60) {
+                timeDriftDiffValue = timeDriftDiff.toFixed(2);
+                timeDriftDiffUnit = '秒';
+            } else if (timeDriftDiff < 3600) {
+                timeDriftDiffValue = (timeDriftDiff / 60).toFixed(2);
+                timeDriftDiffUnit = '分钟';
+            } else {
+                timeDriftDiffValue = (timeDriftDiff / 3600).toFixed(2);
+                timeDriftDiffUnit = '小时';
+            }
+
+            let analysisText = `<div style="margin-bottom: 12px;"><strong>📌 精度排行：</strong></div>`;
+            analysisText += `<div style="margin-left: 12px; margin-bottom: 12px;">`;
+            analysisText += `🥇 <strong>${betterClock}</strong> 精度更高 | 🥈 <strong>${worseClock}</strong> 精度较低<br>`;
+            analysisText += `</div>`;
+
+            analysisText += `<div style="margin-bottom: 12px;"><strong>📊 守时性能对比：</strong></div>`;
+            analysisText += `<div style="margin-left: 12px; margin-bottom: 12px;">`;
+            analysisText += `时钟 1：${clock1Result.perf.toFixed(6)}% &nbsp;&nbsp;&nbsp;&nbsp; 时钟 2：${clock2Result.perf.toFixed(6)}%<br>`;
+            analysisText += `差异值：${perfDiff.toFixed(6)}% （${clock1Result.perf > clock2Result.perf ? '时钟 1 优于时钟 2' : '时钟 2 优于时钟 1'}）<br>`;
+            analysisText += `相对提升：${perfRelativeImprovement.toFixed(3)}%<br>`;
+            analysisText += `</div>`;
+
+            analysisText += `<div style="margin-bottom: 12px;"><strong>📈 相对偏差对比 (PPM)：</strong></div>`;
+            analysisText += `<div style="margin-left: 12px; margin-bottom: 12px;">`;
+            analysisText += `时钟 1：${clock1Result.ppm.toFixed(2)} PPM &nbsp;&nbsp;&nbsp;&nbsp; 时钟 2：${clock2Result.ppm.toFixed(2)} PPM<br>`;
+            analysisText += `差异值：${ppmDiff.toFixed(2)} PPM （${clock1Result.ppm < clock2Result.ppm ? '时钟 1 更优' : '时钟 2 更优'}）<br>`;
+            analysisText += `相对改善：${ppmRelativeImprovement.toFixed(3)}%<br>`;
+            analysisText += `</div>`;
+
+            analysisText += `<div style="margin-bottom: 12px;"><strong>⏱️ 累积时间偏差对比：</strong></div>`;
+            analysisText += `<div style="margin-left: 12px;">`;
+            analysisText += `时钟 1：${clock1Result.driftValue} ${clock1Result.driftUnit} &nbsp;&nbsp;&nbsp;&nbsp; 时钟 2：${clock2Result.driftValue} ${clock2Result.driftUnit}<br>`;
+            analysisText += `差异值：${timeDriftDiffValue} ${timeDriftDiffUnit}<br>`;
+            analysisText += `</div>`;
+
+            document.getElementById('compareAnalysis').innerHTML = analysisText;
+
+            // 生成排名和建议
+            let rankingText = '';
+            if (clock1Result.perf > clock2Result.perf) {
+                const gap = ((clock1Result.perf - clock2Result.perf) / clock2Result.perf * 100).toFixed(3);
+                rankingText = `<div style="margin-bottom: 10px;">🥇 <strong>时钟 1</strong> 守时性能：${clock1Result.perf.toFixed(6)}%</div>`;
+                rankingText += `<div style="margin-bottom: 15px;">🥈 <strong>时钟 2</strong> 守时性能：${clock2Result.perf.toFixed(6)}%</div>`;
+                rankingText += `<div style="border-top: 1px solid rgba(76, 175, 80, 0.3); padding-top: 10px;">`;
+                rankingText += `✅ <strong>建议：</strong>优先选择时钟 1<br>`;
+                rankingText += `• 精度领先 ${gap}%<br>`;
+                rankingText += `• 时间偏差少 ${timeDriftDiffValue} ${timeDriftDiffUnit}`;
+                rankingText += `</div>`;
+            } else if (clock2Result.perf > clock1Result.perf) {
+                const gap = ((clock2Result.perf - clock1Result.perf) / clock1Result.perf * 100).toFixed(3);
+                rankingText = `<div style="margin-bottom: 10px;">🥇 <strong>时钟 2</strong> 守时性能：${clock2Result.perf.toFixed(6)}%</div>`;
+                rankingText += `<div style="margin-bottom: 15px;">🥈 <strong>时钟 1</strong> 守时性能：${clock1Result.perf.toFixed(6)}%</div>`;
+                rankingText += `<div style="border-top: 1px solid rgba(76, 175, 80, 0.3); padding-top: 10px;">`;
+                rankingText += `✅ <strong>建议：</strong>优先选择时钟 2<br>`;
+                rankingText += `• 精度领先 ${gap}%<br>`;
+                rankingText += `• 时间偏差少 ${timeDriftDiffValue} ${timeDriftDiffUnit}`;
+                rankingText += `</div>`;
+            } else {
+                rankingText = `<div style="margin-bottom: 10px;">🤝 <strong>精度持平</strong></div>`;
+                rankingText += `<div style="margin-bottom: 15px;">时钟 1 和时钟 2 守时性能相同：${clock1Result.perf.toFixed(6)}%</div>`;
+                rankingText += `<div style="border-top: 1px solid rgba(76, 175, 80, 0.3); padding-top: 10px;">`;
+                rankingText += `✅ <strong>建议：</strong>可互换选择，根据其他因素决定`;
+                rankingText += `</div>`;
+            }
+
+            document.getElementById('compareRanking').innerHTML = rankingText;
+            document.getElementById('compareResults').classList.add('show');
+        }
+
+        // 计算单个时钟的指标
+        function calculateClockMetrics(rateType, agingRate, durationDays) {
+            const durationMonths = durationDays / 30;
+
+            let monthlyAgingRate = agingRate;
+            if (rateType === 'yearly') {
+                monthlyAgingRate = agingRate / 12;
+            }
+
+            // 计算累积时间偏差
+            const timeDrift = 0.5 * monthlyAgingRate * Math.pow(durationMonths, 2) * S * 1e-10;
+            const totalSeconds = durationMonths * S;
+
+            // 计算守时性能
+            const perf = (1 - timeDrift / totalSeconds) * 100;
+
+            // 计算相对偏差PPM
+            const ppm = (timeDrift / totalSeconds) * 1e6;
+
+            // 格式化时间偏差
+            let driftValue, driftUnit;
+            if (timeDrift < 1) {
+                driftValue = (timeDrift * 1000).toFixed(3);
+                driftUnit = '毫秒';
+            } else if (timeDrift < 60) {
+                driftValue = timeDrift.toFixed(2);
+                driftUnit = '秒';
+            } else if (timeDrift < 3600) {
+                driftValue = (timeDrift / 60).toFixed(2);
+                driftUnit = '分钟';
+            } else {
+                driftValue = (timeDrift / 3600).toFixed(2);
+                driftUnit = '小时';
+            }
+
+            return {
+                perf,
+                ppm,
+                driftValue,
+                driftUnit,
+                timeDrift,
+                totalSeconds
+            };
+        }
+
+        function resetCompare() {
+            document.getElementById('clock1AgingRate').value = '';
+            document.getElementById('clock2AgingRate').value = '';
+            document.getElementById('compareDuration').value = '';
+            document.getElementById('compareResults').classList.remove('show');
+            document.getElementById('clock1Monthly').checked = true;
+            document.getElementById('clock2Monthly').checked = true;
+        }
+
+        function switchTab(tabName) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 显示选中的标签页
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function openFormulaModal() {
+            document.getElementById('formulaModal').classList.add('show');
+        }
+
+        function closeFormulaModal() {
+            document.getElementById('formulaModal').classList.remove('show');
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('formulaModal');
+            if (event.target === modal) {
+                modal.classList.remove('show');
+            }
+        }
+
+        // 回车提交
+        document.getElementById('form').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
